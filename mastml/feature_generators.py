@@ -432,12 +432,15 @@ class ElementalFeatureGenerator_Extra(BaseGenerator):
 
 
 @functools.cache
-def _read_atomic_magpie_properties(data_path):
+def _read_atomic_magpie_properties(data_path, specific_magpie_features):
     # Identify all the magpie data files
-    magpie_feature_names = []
-    for f in os.listdir(data_path):
-        if '.table' in f:
-            magpie_feature_names.append(f[:-6])
+    if specific_magpie_features is not None:
+        magpie_feature_names = specific_magpie_features
+    else:
+        magpie_feature_names = []
+        for f in os.listdir(data_path):
+            if '.table' in f:
+                magpie_feature_names.append(f[:-6])
     
     # Create a mapping of element name to dict of magpie features
     atomic_values_by_element = {}
@@ -478,6 +481,9 @@ class ElementalFeatureGenerator(BaseGenerator):
             for this to be set to False to preserve as many features as possible, to avoid potential issues at inference time when
             features for new test points need to be generated.
 
+        specific_magpie_features: (list), list of strings denoting specific magpie features to include in the final feature matrix.
+            If None, all magpie features are included. If a list of strings is provided, only those features are included.
+
     Methods:
         fit: pass through, copies input columns as pre-generated features
             Args:
@@ -495,12 +501,13 @@ class ElementalFeatureGenerator(BaseGenerator):
                 y: (series), output y data as series
     """
 
-    def __init__(self, featurize_df, feature_types=None, remove_constant_columns=False):
+    def __init__(self, featurize_df, feature_types=None, remove_constant_columns=False, specific_magpie_features=None):
         super(BaseGenerator, self).__init__()
         self.featurize_df = featurize_df
         if type(self.featurize_df) == pd.Series:
             self.featurize_df = pd.DataFrame(self.featurize_df)
         self.feature_types = feature_types
+        self.specific_magpie_features = specific_magpie_features
         self.remove_constant_columns = remove_constant_columns
         if self.feature_types is None:
             self.feature_types = ['composition_avg', 'arithmetic_avg', 'max', 'min', 'difference']
@@ -1308,7 +1315,7 @@ class ElementalFeatureGenerator(BaseGenerator):
         composition = make_composition(composition)
         element_list, atoms_per_formula_unit = self._get_element_list(composition=composition)
         
-        atomic_values_by_element = _read_atomic_magpie_properties(data_path)
+        atomic_values_by_element = _read_atomic_magpie_properties(data_path, self.specific_magpie_features)
         element_dict = {element: Element(element).Z for element in element_list}
         magpiedata_atomic = {k: atomic_values_by_element[k] for k in element_dict}
 
