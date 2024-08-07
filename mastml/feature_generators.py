@@ -435,7 +435,7 @@ class ElementalFeatureGenerator_Extra(BaseGenerator):
 def _read_atomic_magpie_properties(data_path, specific_magpie_features):
     # Identify all the magpie data files
     if specific_magpie_features is not None:
-        magpie_feature_names = specific_magpie_features
+        magpie_feature_names = list(specific_magpie_features)
     else:
         magpie_feature_names = []
         for f in os.listdir(data_path):
@@ -1315,7 +1315,7 @@ class ElementalFeatureGenerator(BaseGenerator):
         composition = make_composition(composition)
         element_list, atoms_per_formula_unit = self._get_element_list(composition=composition)
         
-        atomic_values_by_element = _read_atomic_magpie_properties(data_path, self.specific_magpie_features)
+        atomic_values_by_element = _read_atomic_magpie_properties(data_path, frozenset(self.specific_magpie_features))
         element_dict = {element: Element(element).Z for element in element_list}
         magpiedata_atomic = {k: atomic_values_by_element[k] for k in element_dict}
 
