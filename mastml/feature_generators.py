@@ -507,7 +507,7 @@ class ElementalFeatureGenerator(BaseGenerator):
         if type(self.featurize_df) == pd.Series:
             self.featurize_df = pd.DataFrame(self.featurize_df)
         self.feature_types = feature_types
-        self.specific_magpie_features = specific_magpie_features
+        self.specific_magpie_features = frozenset(specific_magpie_features) if specific_magpie_features else None
         self.remove_constant_columns = remove_constant_columns
         if self.feature_types is None:
             self.feature_types = ['composition_avg', 'arithmetic_avg', 'max', 'min', 'difference']
@@ -1315,7 +1315,7 @@ class ElementalFeatureGenerator(BaseGenerator):
         composition = make_composition(composition)
         element_list, atoms_per_formula_unit = self._get_element_list(composition=composition)
         
-        atomic_values_by_element = _read_atomic_magpie_properties(data_path, frozenset(self.specific_magpie_features))
+        atomic_values_by_element = _read_atomic_magpie_properties(data_path, self.specific_magpie_features)
         element_dict = {element: Element(element).Z for element in element_list}
         magpiedata_atomic = {k: atomic_values_by_element[k] for k in element_dict}
 
